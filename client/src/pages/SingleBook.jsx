@@ -90,10 +90,9 @@ const SingleBook = () => {
                 const response = await axios.get(`http://localhost:5000/api/books/allbooks`);
                 const allBooks = response.data;
 
-                // Filter books by genres and exclude the current book
                 const filtered = allBooks.filter(b =>
                     b.genres && genres.some(genre => b.genres.includes(genre)) &&
-                    b.id !== parseInt(id) // Exclude current book
+                    b.id !== parseInt(id)
                 );
 
                 setBooksYouMayLike(filtered);

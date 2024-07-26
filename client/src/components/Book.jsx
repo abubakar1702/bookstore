@@ -1,8 +1,10 @@
 import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../store/Context";
+import { IoCloseSharp } from "react-icons/io5";
+import { PiPlusBold, PiMinusBold } from "react-icons/pi";
 
-const Book = ({ id, image, author, description, title, price, rating, alt, inCart, inWishlist, mainBook, discount }) => {
+const Book = ({ id, image, author, description, title, price, rating, alt, inCart, inWishlist, mainBook,inOrder, discount,format }) => {
     const [totalItems, setTotalItems] = useState(1);
     const [isInCart, setIsInCart] = useState(false);
 
@@ -54,6 +56,13 @@ const Book = ({ id, image, author, description, title, price, rating, alt, inCar
         localStorage.setItem("Cart", JSON.stringify(updatedProducts));
     };
 
+    const handleRemoveBook = () => {
+        const updatedProducts = allProducts.filter(product => product.id !== id);
+        setAllProducts(updatedProducts);
+        localStorage.setItem("Cart", JSON.stringify(updatedProducts));
+    };
+    
+
     return (
         <>
             {inCart && (
@@ -67,13 +76,27 @@ const Book = ({ id, image, author, description, title, price, rating, alt, inCar
                             <p className="text-xs text-gray-600">Price: ${priceAfterDiscount.toFixed(2)} x {totalItems}</p>
                             <p className="text-xs text-gray-600">Total: ${(totalItems * priceAfterDiscount).toFixed(2)}</p>
                             <div className="space-x-2">
-                                <button onClick={handleTotalItemsPlus} className="px-4 border rounded">+</button>
-                                <button onClick={handleTotalItemsMinus} className="px-4 border rounded">-</button>
+                                <button onClick={handleTotalItemsPlus} className="px-2 py-1 text-xs border rounded"><PiPlusBold /></button>
+                                <button onClick={handleTotalItemsMinus} className="px-2 py-1 text-xs border rounded"><PiMinusBold /></button>
                             </div>
                         </div>
                     </div>
                     <div className="mx-4">
-                        <button className="px-2 border rounded-full hover:text-white hover:bg-black">x</button>
+                        <button onClick={handleRemoveBook} className="p-1 border rounded-full hover:text-white hover:bg-black"><IoCloseSharp /></button>
+                    </div>
+                </div>
+            )}
+            {inOrder && (
+                <div className="h-22 w-auto p-1 flex border justify-between items-center">
+                    <div className="flex">
+                        <div className="h-auto w-14 shadow-lg">
+                            <img className="w-full h-full object-contain overflow-hidden" src={image} alt={alt} />
+                        </div>
+                        <div className="h-auto px-2 space-y-1">
+                            <Link to="/singlebook"><p className="text-sm cursor-pointer">{title}</p></Link>
+                            <p>Quantity: {totalItems}</p>
+                            <p className="text-xs text-gray-600">Price: ${(totalItems * priceAfterDiscount).toFixed(2)}</p>
+                        </div>
                     </div>
                 </div>
             )}

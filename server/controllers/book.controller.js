@@ -99,7 +99,7 @@ export const addBooks = (req, res) => {
 
 export const latestBooks = async (req, res) => {
   try {
-    const query = `SELECT b.id, b.title, b.description, a.name as author, b.imageurl, b.price, b.isbn, b.publication, b.first_published, b.rating, b.availability, b.publication_date, b.language
+    const query = `SELECT b.id, b.title, b.description,b.discount, a.name as author, b.imageurl, b.price, b.isbn, b.publication, b.first_published, b.rating, b.availability, b.publication_date, b.language
                    FROM books as b
                    JOIN authors as a
                    ON b.author_id = a.id

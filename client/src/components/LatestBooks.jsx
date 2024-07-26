@@ -34,6 +34,7 @@ const LatestBooks = () => {
                         author={book.author}
                         price={book.price}
                         mainBook={true}
+                        discount={book.discount}
                     />
                 ))}
             </div>
