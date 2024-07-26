@@ -1,4 +1,4 @@
-import mysql from "mysql";
+import mysql from 'mysql';
 import db from "../config/db.js";
 
 export const allbooks = (req, res) => {
@@ -455,7 +455,6 @@ export const authorProfile = async (req, res) => {
       FROM authors
       WHERE id = ?;
     `;
-
 
     db.query(query, [id], (err, results) => {
       if (err) {

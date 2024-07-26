@@ -3,39 +3,18 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Book from "../components/Book";
 
-// Book images
-import book1 from "../assets/book1.jpeg";
-import book2 from "../assets/book2.jpeg";
-import book3 from "../assets/book3.jpeg";
-import book4 from "../assets/book4.jpeg";
-import book5 from "../assets/book5.jpg";
-import book6 from "../assets/book6.jpg";
-import book7 from "../assets/book7.jpg";
-import book8 from "../assets/book8.jpg";
-
 const SingleBook = () => {
     const [book, setBook] = useState({});
     const [publicationDate, setPublicationDate] = useState("");
     const [firstPublished, setFirstPublished] = useState("");
     const [dateOfBirth, setDateOfBirth] = useState("");
-    const [genres, setGenres] = useState("");
+    const [genres, setGenres] = useState([]);
     const [showFullDescription, setShowFullDescription] = useState(false);
     const [bookAvailability, setBookAvailability] = useState("");
     const [moreBooks, setMoreBooks] = useState([]);
+    const [booksYouMayLike, setBooksYouMayLike] = useState([]);
     const { id } = useParams();
 
-    console.log("Fetching book with ID:", id);
-
-    const allbooks = [
-        { title: "Simple Way Of Piece Life", author: "Armor Ramsey", price: "$40.00", imageUrl: book1 },
-        { title: "Great Travel At Desert", author: "Sanchit Howdy", price: "$38.00", imageUrl: book2 },
-        { title: "The Lady Beauty Scarlett", author: "Arthur Doyle", price: "$45.00", imageUrl: book3 },
-        { title: "Once Upon A Time", author: "Klein Marry", price: "$35.00", imageUrl: book4 },
-        { title: "Crime and Punishment", author: "Dostovsky", price: "$35.00", imageUrl: book5 },
-        { title: "The Republic", author: "Pleto", price: "$35.00", imageUrl: book6 },
-        { title: "Meditation", author: "Murqas Aurelius", price: "$35.00", imageUrl: book7 },
-        { title: "Latters from the underground", author: "Dostovsky", price: "$35.00", imageUrl: book8 }
-    ];
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -75,7 +54,7 @@ const SingleBook = () => {
                 }
 
                 if (fetchedBook.genres) {
-                    setGenres(fetchedBook.genres);
+                    setGenres(fetchedBook.genres.split(', ')); // Assuming genres are comma-separated
                 }
 
                 setBookAvailability(fetchedBook.availability === 1 ? "Available" : "Not Available");
@@ -105,6 +84,29 @@ const SingleBook = () => {
         }
     }, [book.author_id, id]);
 
+    useEffect(() => {
+        const fetchBooksByGenres = async () => {
+            try {
+                const response = await axios.get(`http://localhost:5000/api/books/allbooks`);
+                const allBooks = response.data;
+
+                // Filter books by genres and exclude the current book
+                const filtered = allBooks.filter(b =>
+                    b.genres && genres.some(genre => b.genres.includes(genre)) &&
+                    b.id !== parseInt(id) // Exclude current book
+                );
+
+                setBooksYouMayLike(filtered);
+            } catch (error) {
+                console.error("Error fetching books by genres:", error);
+            }
+        };
+
+        if (genres.length > 0) {
+            fetchBooksByGenres();
+        }
+    }, [genres, id]);
+
     const toggleDescription = () => {
         setShowFullDescription(!showFullDescription);
     };
@@ -112,19 +114,18 @@ const SingleBook = () => {
     const truncatedDescription = book.description ? book.description.slice(0, 600) : "";
     const displayDescription = showFullDescription ? book.description : truncatedDescription;
 
-
     return (
         <div>
             <div className="grid grid-cols-1 md:grid-cols-2 border-b-2">
                 <div className="border-r-2 h-auto">
                     <div className="p-4 flex justify-center">
-                        <img className="w-80 h-auto" src={book.imageurl || book1} alt={book.title} />
+                        <img className="w-80 h-auto" src={book.imageurl} alt={book.title} />
                     </div>
                 </div>
                 <div className="p-4 space-y-2">
                     <h1 className="text-2xl md:text-4xl mb-5 px-2">{book.title}</h1>
                     <div className="flex justify-start items-center">
-                        <img className="rounded-full w-10 h-10 object-cover mx-2" src={book.authorimage || book1} alt={book.author} />
+                        <img className="rounded-full w-10 h-10 object-cover mx-2" src={book.authorimage} alt={book.author} />
                         <Link to={`/author/${book.author_id}`}><p className="md:text-xl text-gray-500">{book.author}</p></Link>
                     </div>
                     {book.description && (
@@ -142,7 +143,7 @@ const SingleBook = () => {
                     )}
                     <div className="grid grid-cols-2 gap-y-2 px-2">
                         <p className="text-gray-600 text-md">Genres:</p>
-                        <p className="text-gray-600 text-md">{genres}</p>
+                        <p className="text-gray-600 text-md">{genres.join(', ')}</p>
                         <p className="text-gray-600 text-md">Published:</p>
                         <p className="text-gray-600 text-md">{publicationDate} by {book.publication}</p>
                         <p className="text-gray-600 text-md">First Published:</p>
@@ -158,11 +159,16 @@ const SingleBook = () => {
                         <p className="text-gray-600 text-md">Rating:</p>
                         <p className="text-gray-600 text-md">{book.rating}</p>
                         {book.discount && <p className="text-gray-600 text-md">Discount:</p>}
-                        {book.discount && <p className="text-gray-600 text-md">{book.discount}%</p>}
-                        {!book.discount && <p className="text-green-600">Price:</p>}
-                        {!book.discount && <p className="text-green-600">${book.price}</p>}
-                        {book.discount && <p className="text-green-600">Price:</p>}
-                        {book.discount && <p className="text-green-600"><span className="text-gray-400 line-through">${book.price}</span>  <span>${book.price - Math.round((book.discount / 100) * book.price)}</span></p>}
+                        {book.discount && <p className="text-red-600 text-md">{book.discount}%</p>}
+                        {!book.discount && <p className="text-gray-600 text-md">Price:</p>}
+                        {!book.discount && <p className="text-green-600">{book.price}</p>}
+                        {book.discount && <p className="text-gray-500 text-md">Price:</p>}
+                        {book.discount && (
+                            <p className="text-green-600 text-md">
+                                <span className="text-gray-400 line-through">${book.price}</span>{" "}
+                                <span>${(book.price - Math.round((book.discount / 100) * book.price)).toFixed(2)}</span>
+                            </p>
+                        )}
                     </div>
                     <div className="flex">
                         <button className="py-2 px-4 border rounded mx-2 hover:shadow-xl">Add to Cart</button>
@@ -173,11 +179,11 @@ const SingleBook = () => {
             <div>
                 <h1 className="text-center text-xl py-6">BOOKS YOU MAY LIKE</h1>
                 <div className="flex flex-wrap justify-center gap-10">
-                    {allbooks.slice(0, 6).map((book, index) => (
+                    {booksYouMayLike.slice(0, 6).map((book, index) => (
                         <Book
-                            key={index}
-                            id={index} // Use an appropriate key here
-                            image={book.imageUrl}
+                            key={book.id}
+                            id={book.id}
+                            image={book.imageurl}
                             title={book.title}
                             author={book.author}
                             price={book.price}
@@ -191,9 +197,9 @@ const SingleBook = () => {
                     <div className="my-8">
                         <h1 className="text-center text-xl py-6">More Books by {book.author}</h1>
                         <div className="flex flex-wrap justify-center gap-10">
-                            {moreBooks.map((book, index) => (
+                            {moreBooks.map((book) => (
                                 <Book
-                                    key={index}
+                                    key={book.id}
                                     id={book.id}
                                     image={book.imageurl}
                                     title={book.title}
